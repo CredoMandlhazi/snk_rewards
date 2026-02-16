@@ -1,1 +1,10 @@
 project_id = "dxinajfjostctieduoim"
+
+[auth]
+site_url = "https://credomandlhazi.github.io/snk_rewards/"
+additional_redirect_urls = [
+  "https://credomandlhazi.github.io/snk_rewards/",
+  "http://localhost:3000",
+  "http://localhost",
+  "capacitor://localhost"
+]
