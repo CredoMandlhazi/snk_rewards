@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
+import { getRedirectUrl } from "@/lib/auth-config";
 import logo from "@/assets/logo.png";
 
 const Login = () => {
@@ -13,6 +14,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,12 +32,55 @@ const Login = () => {
     }
   };
 
+  const handleMagicLink = async () => {
+    if (!email) {
+      toast.error("Please enter your email address first");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: getRedirectUrl("/home"),
+      },
+    });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setMagicLinkSent(true);
+      toast.success("Magic link sent! Check your email.");
+    }
+  };
+
   const handleOAuthLogin = async (provider: "google" | "apple") => {
     const { error } = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: window.location.origin,
+      redirect_uri: getRedirectUrl(),
     });
     if (error) toast.error(error.message);
   };
+
+  if (magicLinkSent) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm text-center">
+          <div className="flex justify-center mb-8">
+            <img src={logo} alt="SNK Showroom" className="h-16 brightness-0 invert" />
+          </div>
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <Mail className="text-primary" size={28} />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Check Your Email</h1>
+          <p className="text-sm text-muted-foreground mb-6">
+            We sent a magic link to <span className="text-foreground font-medium">{email}</span>. Click the link to sign in instantly.
+          </p>
+          <button onClick={() => setMagicLinkSent(false)} className="text-sm text-primary font-semibold">
+            ← Back to Sign In
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
@@ -68,6 +113,15 @@ const Login = () => {
           </button>
         </form>
 
+        <button
+          onClick={handleMagicLink}
+          disabled={loading}
+          className="w-full mt-3 flex items-center justify-center gap-2 bg-card border border-border text-foreground font-semibold py-3.5 rounded-xl transition-all hover:bg-secondary active:scale-[0.98] disabled:opacity-50"
+        >
+          <Wand2 size={16} />
+          {loading ? "Sending..." : "Sign in with Magic Link"}
+        </button>
+
         <div className="flex items-center gap-3 my-6">
           <div className="flex-1 h-px bg-border" />
           <span className="text-xs text-muted-foreground">or continue with</span>
@@ -85,7 +139,11 @@ const Login = () => {
           </button>
         </div>
 
-        <p className="text-center mt-8 text-sm text-muted-foreground">
+        <button onClick={() => navigate("/forgot-password")} className="block mx-auto mt-4 text-sm text-muted-foreground hover:text-primary transition-colors">
+          Forgot Password?
+        </button>
+
+        <p className="text-center mt-4 text-sm text-muted-foreground">
           Don't have an account?{" "}
           <button onClick={() => navigate("/signup")} className="text-primary font-semibold">Create Account</button>
         </p>
