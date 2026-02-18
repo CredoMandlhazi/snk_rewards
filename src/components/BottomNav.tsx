@@ -1,6 +1,6 @@
 import { Home, Tag, Gift, MapPin, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+
 
 const tabs = [
   { path: "/home", icon: Home, label: "Home" },
@@ -25,16 +25,11 @@ const BottomNav = () => {
               onClick={() => navigate(tab.path)}
               className="relative flex flex-col items-center gap-0.5 py-1 px-3 transition-colors"
             >
-              {isActive && (
-                <motion.div
-                  layoutId="nav-indicator"
-                  className="absolute -top-px left-1/2 -translate-x-1/2 w-8 h-0.5 loyalty-gradient rounded-full"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              )}
               <tab.icon
                 size={20}
-                className={isActive ? "text-primary" : "text-muted-foreground"}
+                fill={isActive ? "hsl(var(--primary))" : "none"}
+                className={isActive ? "text-primary-foreground" : "text-muted-foreground"}
+                strokeWidth={isActive ? 1.5 : 2}
               />
               <span
                 className={`text-[10px] font-medium ${
